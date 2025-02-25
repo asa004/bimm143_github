@@ -1,0 +1,281 @@
+---
+title: "Class 14: RNA-seq analysis mini project"
+author: "Ashley Allen (PID: A14633373)"
+format: pdf
+toc: true
+---
+
+## Background
+
+The data for for hands-on session comes from GEO entry: GSE37704, which is associated with the following publication:
+
+> Trapnell C, Hendrickson DG, Sauvageau M, Goff L et al. "Differential analysis of gene regulation at transcript resolution with RNA-seq". Nat Biotechnol 2013 Jan;31(1):46-53. PMID: 23222703
+
+The authors report on differential analysis of lung fibroblasts in response to loss of the developmental transcription factor HOXA1. Their results and others indicate that HOXA1 is required for lung fibroblast and HeLa cell cycle progression. In particular their analysis show that "loss of HOXA1 results in significant expression level changes in thousands of individual transcripts, along with isoform switching events in key regulators of the cell cycle". For our session we have used their Sailfish gene-level estimated counts and hence are restricted to protein-coding genes only.
+
+
+## Section 1. Differential Expression Analysis
+
+Data Import
+
+```{r}
+counts <- read.csv("GSE37704_featurecounts.csv", row.names =1)
+colData <- read.csv("GSE37704_metadata.csv")
+```
+
+
+Inspect and tidy data
+
+Does the `counts` columns match the `colData` rows?
+
+```{r}
+head(counts)
+```
+```{r}
+head(colData)
+```
+
+> Q. Complete the code below to remove the troublesome first column from countData
+
+```{r}
+countData <- counts[,-1]
+head(countData)
+```
+
+```{r}
+colnames(countData) == colData$id
+```
+
+> Q. How many genes in this dataset.
+
+```{r}
+nrow(countData)
+```
+
+> Q. Complete the code below to filter countData to exclude genes (i.e. rows) where we have 0 read count across all samples (i.e. columns).
+
+```{r}
+to.keep.inds <- rowSums(countData) >0
+new.counts <- countData[to.keep.inds,]
+nrow(new.counts)
+```
+
+Set up for DESeq
+
+```{r}
+#/ message: false
+library(DESeq2)
+```
+
+Setup input object for DESeq
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = new.counts, 
+                              colData = colData, 
+                              design = ~condition)
+```
+
+Run DESeq
+
+```{r}
+dds <- DESeq(dds)
+res <- results(dds)
+```
+
+> Q. Call the summary() function on your results to get a sense of how many genes are up or down-regulated at the default 0.1 p-value cutoff.
+
+```{r}
+summary(res)
+```
+
+```{r}
+head(res)
+```
+
+Volcano plot of results
+
+```{r}
+plot( res$log2FoldChange, -log(res$padj) )
+```
+
+> Q. Improve this plot by completing the below code, which adds color and axis labels
+
+```{r}
+mycols <- rep("gray", nrow(res) )
+
+# Color red the genes with absolute fold change above 2
+mycols[ abs(res$log2FoldChange) > 2 ] <- "red"
+
+# Color blue those with adjusted p-value less than 0.01
+#  and absolute fold change more than 2
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+plot( res$log2FoldChange, -log(res$padj), col=mycols, xlab="Log2(FoldChange)", ylab="-Log(P-value)" )
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(res) + 
+  aes(log2FoldChange, -log(padj)) + 
+  geom_point() + 
+  geom_vline(xintercept = c(-2,2), col="grey") + 
+  geom_hline(yintercept = 0.05)
+```
+
+Gene annotation
+
+```{r}
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+```
+
+```{r}
+columns(org.Hs.eg.db)
+```
+
+> Q. Use the mapIDs() function multiple times to add SYMBOL, ENTREZID and GENENAME annotation to our results by completing the code below.
+
+```{r}
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=rownames(res), 
+                    keytype="ENSEMBL",
+                    column="SYMBOL")
+
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=rownames(res),
+                    keytype="ENSEMBL",
+                    column="ENTREZID")
+
+res$name =   mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype="ENSEMBL",
+                    column="GENENAME")
+head(res)
+```
+
+> Q. Finally for this section let's reorder these results by adjusted p-value and save them to a CSV file in your current project directory.
+
+```{r}
+res = res[order(res$pvalue),]
+write.csv(res, file="deseq_results.csv")
+```
+
+
+## Section 2. Pathway Analysis
+
+```{r}
+library(gage)
+library(pathview)
+library(gageData)
+```
+
+```{r}
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+
+# Focus on signaling and metabolic pathways only
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+
+# Examine the first 3 pathways
+head(kegg.sets.hs, 3)
+
+```
+
+```{r}
+foldchanges = res$log2FoldChange
+names(foldchanges) = res$entrez
+head(foldchanges)
+```
+
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+```
+
+```{r}
+attributes(keggres)
+```
+
+```{r}
+head(keggres$less)
+```
+
+Cell cycle figure
+```{r}
+pathview(foldchanges, pathway.id="hsa04110")
+```
+![](hsa04110.pathview.png)
+
+```{r}
+pathview(gene.data=foldchanges, pathway.id="hsa04110", kegg.native=FALSE)
+```
+
+```{r}
+keggrespathways <- rownames(keggres$greater)[1:5]
+
+# Extract the 8 character long IDs part of each string
+keggresids = substr(keggrespathways, start=1, stop=8)
+keggresids
+```
+```{r}
+pathview(gene.data=foldchanges, pathway.id=keggresids, species="hsa")
+```
+![](hsa04640.pathview.png)
+![](hsa04630.pathview.png)
+![](hsa00140.pathview.png)
+  ![](hsa04142.pathview.png)
+![](hsa04330.pathview.png)
+
+## Section 3. Gene Ontology (GO)
+
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+
+```{r}
+head(gobpres$less)
+```
+
+
+## Section 4. Reactome Analysis
+
+```{r}
+sig_genes <- res[res$padj <= 0.05 & !is.na(res$padj), "symbol"]
+print(paste("Total number of significant genes:", length(sig_genes)))
+```
+
+```{r}
+write.table(sig_genes, file="significant_genes.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+> Q: What pathway has the most significant “Entities p-value”? Do the most significant pathways listed match your previous KEGG results? What factors could cause differences between the two methods?
+
+The cell cycle pathway has the most significant "Entities p-value." The most significant pathways do match. I think that there could be errors when setting up our data for analysis.
+
+## Section 5. GO online (OPTIONAL)
+
+> Q: What pathway has the most significant “Entities p-value”? Do the most significant pathways listed match your previous KEGG results? What factors could cause differences between the two methods?
+
+Trachea formation is the most significant for this result. This GO online is significantly different than the other two. Again I think differences would arise in setting up our data for analysis that could cause differences among results.
+
+
+
+
+
+
+
+
+
+
+
+
