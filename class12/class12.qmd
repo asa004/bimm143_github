@@ -1,0 +1,153 @@
+---
+title: "Class 12: Introduction to Genome Informatics"
+author: "Ashley Allen (PID: A14633373)"
+format: pdf
+toc: TRUE
+---
+
+## Section 1: Identify genetic variants of interest
+
+> Q1. What are those 4 candidate SNPs?
+
+s12936231, rs8067378, rs9303277, and rs7216389
+
+> Q2. What three genes do these variants overlap or effect?
+
+ZPBP2, GSDMB, and ORMDL3
+
+> Q3. What is the location of rs8067378 and what are the different alleles for rs8067378?
+
+location: Chromosome 17:39895095
+different alleles: A/C/G, Ancestral: G, Highest population MAF: 0.49
+
+> Q4. Name at least 3 downstream genes for rs8067378? 
+
+GSDMB-205, ORMDL3-201, LRRC3C-201
+
+> Q5. What proportion of the Mexican Ancestry in Los Angeles sample population (MXL) are
+homozygous for the asthma associated SNP (G|G)? 
+
+Here we read in the csv file obtained from ensembl:
+```{r}
+mxl <- read.csv("mxl_asthma.csv")
+head(mxl)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+
+Proportion of G|G:
+
+```{r}
+round(table(mxl$Genotype..forward.strand.) / nrow(mxl) * 100, 2)
+```
+
+Comparing MXL and GBR:
+
+```{r}
+gbr <- read.csv("gbr_asthma.csv")
+head(gbr)
+```
+
+```{r}
+round(table(gbr$Genotype..forward.strand.) / nrow(gbr) * 100, 2)
+```
+
+> Q6. Back on the ENSEMBLE page, use the “search for a sample” field above to find the
+particular sample HG00109. This is a male from the GBR population group. What is the
+genotype for this sample?
+
+G|G
+
+## Section 2: Initial RNA-Seq analysis
+
+> Q7. How many sequences are there in the first file? What is the file size and format of the data? Make sure the format is fastqsanger here!
+
+3863 sequences
+741.9 KB
+fastqsanger
+
+> Q8. What is the GC content and sequence length of the second fastq file?
+
+54%
+3863 seguences
+
+> Q9. How about per base sequence quality? Does any base have a mean quality score below
+20?
+
+The sequence quality is good, there are no mean quality scores below 20.
+
+## Section 3: Mapping RNA-Seq reads to genome
+
+> Q10. Where are most the accepted hits located?
+
+PSMD3
+
+> Q11. Following Q10, is there any interesting gene around that area?
+
+gasdermin A (GSDMA), which from a quick google search says "a protein that forms pores in cell membranes, causing cell death"  and are important in host defense.
+
+> Q12. Cufflinks again produces multiple output files that you can inspect from your right-handside galaxy history. From the “gene expression” output, what is the FPKM for the ORMDL3
+gene? What are the other genes with above zero FPKM values?
+
+ORMDL3 FPKM: 136853
+
+Above zero FPKM:
+ZPBP2: 4613.49
+GSDMB: 26366.3
+GSDMA: 133.634
+PSMD3: 299021
+
+## Section 4: Population Scale Analysis
+
+Reading in our data:
+
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+
+> Q13. Read this file into R and determine the sample size for each genotype and their
+corresponding median expression levels for each of these genotypes.
+
+```{r}
+nrow(expr)
+```
+
+```{r}
+table(expr$geno)
+```
+```{r}
+library(dplyr)
+```
+```{r}
+expr %>%
+  group_by(geno) %>%
+  summarize(median_expr = median(exp))
+```
+
+> Q14: Generate a boxplot with a box per genotype, what could you infer from the relative expression value between A/A and G/G displayed in this plot? Does the SNP effect the
+expression of ORMDL3?
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(expr) + aes(x=geno, y=exp, fill=geno) + 
+  geom_boxplot(notch=TRUE) + 
+  xlab("Genotype") + 
+  ylab("Expression")
+```
+
+From our box plot you could infer that A|A has a higher expression level overall compared to G|G. The SNP could cause a higher expression level in ORMDL3. We can infer that from our plot as well, since we know the ancestral genotype is G rather than A, and ORMDL3 is associated with that SNP.
+
+
+
+
+
+
+
+
+
