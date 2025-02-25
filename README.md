@@ -1,2 +1,3 @@
 # bimm143_github
-My class work from W25 BIMM143
+My class work from W25 BIMM143 at UCSD
+
