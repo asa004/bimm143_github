@@ -1,0 +1,414 @@
+---
+title: "Class 7: Machine Learning 1"
+author: "Ashley Allen (PID: A14633373)"
+format: pdf
+---
+
+Today we will explore unsupervised machine learning methods including clustering and dimensionallity reduction methods. 
+
+Let's start by making up some data (where we know there are clear groups/cluster) that we can use to test out different clustering methods. 
+
+We can use the `rnorm()` function to help us here:
+This function takes 3 input arguments (n, mean, sd) where mean and sd both have defaults.
+
+```{r}
+hist(rnorm(n = 3000, mean = 3))
+```
+
+Make data `z` with two "cluster."
+
+```{r}
+x <- c( rnorm(30, mean=-3), 
+   rnorm(30, mean=+3) )
+
+z <- cbind(x=x, y=rev(x))
+
+head(z)
+plot(z)
+```
+
+
+How big is `z`
+```{r}
+nrow(z)
+ncol(z)
+```
+
+## K-means clustering
+
+The main function in "base" R for K-means clustering is called `kmeans()`. It has 2 arguments that don't have defaults (x, centers). 
+
+-2 clusters because we set centers to 2. 
+-The sizes are the number of data points in each cluster. 
+-When we made z we gave it 30 points each. 
+-Cluster means are the centers of each cluster. 
+-Clustering vector tells us what cluster each point is in.
+
+```{r}
+k <- kmeans(z, centers=2)
+k
+```
+
+```{r}
+attributes(z)
+```
+
+> Q. How many points lie in each cluster?
+
+```{r}
+k$size
+```
+
+> Q. What component of our results tells us about the cluster membership (i.e. which point likes in which cluster)
+
+```{r}
+k$cluster
+```
+
+> Q. Center of each cluster?
+
+```{r}
+k$centers
+```
+
+> Q. Put this result infor together and make a little "base R" plot of our clustering result. Also add the cluster center points to this plot
+
+```{r}
+plot(z, col="blue")
+```
+
+```{r}
+plot(z, col=c("blue", "red"))
+```
+
+You can color by number (1st from the color palette). Like above the red and black are alternating.
+
+```{r}
+plot(z, col=c(1,2))
+```
+
+Plot colored by cluster membership:
+
+```{r}
+plot(z, col=k$cluster)
+points(k$centers, col="blue", pch=15)
+```
+
+> Q. Run `kmeans()` on our input `z` and define 4 clusters making the same result visualization plot as above (plot of z colored by cluster membership).
+
+```{r}
+k4 <- kmeans(z, centers=4)
+plot(z, col=k4$cluster)
+points(k4$centers, col="purple", pch=16)
+```
+
+## Hieraarchical Clustering
+ 
+ One advantage over K is that it reveals more of a structure in our data set because we set the clusters in K.
+ 
+ The main function in base R for this is called `hclust()` it will take as input a distance matrix (key point is that you can't just give your "raw" data as input - you have to first calculate a distance matrix from your data).
+ 
+```{r}
+d <- dist(z)
+hc <- hclust(d)
+hc
+```
+ 
+```{r}
+plot(hc)
+abline(h=10, col="red")
+```
+
+Once I inspect the dendrogram ("tree") I can cut it to yield my grouping or clusters. The function to do this is called `cutree()`. Above we used `abline()` to visualize where we'll cut.
+
+```{r}
+cutree(hc, h=10)
+```
+
+```{r}
+grps <- cutree(hc, h=10)
+```
+
+```{r}
+plot(z, col=grps)
+```
+
+## Hands on with Principal Component Analysis (PCA)
+
+Let's examine some silly 17-dimensional data detailing food consumption in the UK (England, Scotland, Wales, and N. Ireland). Are these countries eating habits different or similar and if so how?
+
+
+### Data import 
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names=1)
+x
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+The function `nrow()` returns the number or rows, `ncol()` the number of columns, and `dim()` returns both.
+
+```{r}
+nrow(x)
+ncol(x)
+dim(x)
+```
+
+To preview the first 6 rows of our data:
+```{r}
+head(x)
+```
+
+> Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+When we first imported our data we used `row.names()` in order to fix our row names problem rather than minus indexing. I prefer row.names() in our first example because it utilizes less code. Running a minus index multiple times would continue to remove row after row and you would eventually have an empty data set.
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+
+>Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+```{r}
+barplot(as.matrix(x), beside=F, col=rainbow(nrow(x)))
+```
+
+>Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+This plot compares each country to one another. In the first row for example, England is on the Y axis while the x axis is the following country on the diagonal. If a given point lies on the diagonal it indicates the similarity among both of the countries. If they're not on the diagonal then they're is a difference among the food groups, one value is more in one country than another.
+
+```{r}
+pairs(x, col=rainbow(nrow(x)), pch=16)
+```
+
+> Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+
+It's really difficult to differentiate the differences between data sets, but visually we can see that N. Ireland has multiple food groups that aren't similar to other countries. We can see this in the last plot as less points are aligned on the diagonal.
+
+
+Looking at these types of "pairwise plots" can be helpful but it does not scale well and kind of sucks! There must be a better way...
+
+### PCA to the rescue!
+
+The main function for PCA in base R is `prcomp()`. This function wants the transpose of our input data - i.e. the important food categories as columns and the countries as rows.
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+
+Let's see what is in our PCA result object `pca`
+
+```{r}
+attributes(pca)
+```
+
+The `pca$x` result object is where we will focus first as this details how the countries are related to each other in terms of our new "axis" (a.k.a. "PCs", "eigenvectors", etc.)
+
+```{r}
+head(pca$x)
+```
+
+> Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+
+> Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+# Plot PC1 vs PC2
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x), col=c("orange", "red", "blue", "darkgreen"))
+```
+
+
+```{r}
+plot(pca$x[,1], pca$x[,2], pch=16, col=c("orange", "red", "blue", "darkgreen"), xlab="PC1", ylab="PC2")
+```
+
+```{r}
+v <- round( pca$sdev^2/sum(pca$sdev^2) * 100 )
+v
+```
+
+```{r}
+z <- summary(pca)
+z$importance
+```
+
+To help visualize the variation in each PC
+
+```{r}
+barplot(v, xlab="Principal Component", ylab="Percent Variation")
+```
+
+We can look at the so-called PC "loadings" result object to see how the original foods contribute to our new PCs (i.e. how the original variables contribute to our new better PC variables).
+
+```{r}
+pca$rotation[,1]
+```
+
+PC1
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+
+> Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 maninly tell us about?
+
+Fresh potatoes and soft drinks are prominent, but fresh potatoes is negative while soft drinks are positive. PC2 tells us there is a larger variance in these two food groups between N. Ireland and other countries.
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,2], las=2 )
+```
+
+## Ggplot
+
+```{r}
+library(ggplot2)
+
+df <- as.data.frame(pca$x)
+df_lab <- tibble::rownames_to_column(df, "Country")
+
+ggplot(df_lab) + 
+  aes(PC1, PC2, col=Country) + 
+  geom_point()
+```
+
+```{r}
+ggplot(df_lab) + 
+  aes(PC1, PC2, col=Country, label=Country) + 
+  geom_hline(yintercept = 0, col="gray") +
+  geom_vline(xintercept = 0, col="gray") +
+  geom_point(show.legend = FALSE) +
+  geom_label(hjust=1, nudge_x = -10, show.legend = FALSE) +
+  expand_limits(x = c(-300,500)) +
+  xlab("PC1 (67.4%)") +
+  ylab("PC2 (28%)") +
+  theme_bw()
+```
+
+```{r}
+ld <- as.data.frame(pca$rotation)
+ld_lab <- tibble::rownames_to_column(ld, "Food")
+
+ggplot(ld_lab) +
+  aes(PC1, Food) +
+  geom_col()
+```
+
+```{r}
+ggplot(ld_lab) +
+  aes(PC1, reorder(Food, PC1), bg=PC1) +
+  geom_col() + 
+  xlab("PC1 Loadings/Contributions") +
+  ylab("Food Group") +
+  scale_fill_gradient2(low="purple", mid="gray", high="darkgreen", guide=NULL) +
+  theme_bw()
+```
+
+## Biplots
+
+```{r}
+biplot(pca)
+```
+
+## PCA of RNA-seq data
+
+The samples are columns and the genes are rows.
+```{r}
+url2 <- "https://tinyurl.com/expression-CSV"
+rna.data <- read.csv(url2, row.names=1)
+head(rna.data)
+```
+
+> Q10: How many genes and samples are in this data set?
+
+Number of genes:
+```{r}
+nrow(rna.data)
+```
+Number of samples:
+```{r}
+ncol(rna.data)
+```
+
+```{r}
+pca <- prcomp(t(rna.data), scale=TRUE)
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2")
+```
+
+```{r}
+summary(pca)
+```
+
+```{r}
+plot(pca, main="Quick scree plot")
+```
+
+```{r}
+pca.var <- pca$sdev^2
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+pca.var.per
+```
+
+We see in our scree plot that PC1 has captured most of the variance.
+```{r}
+barplot(pca.var.per, main="Scree Plot", 
+        names.arg = paste0("PC", 1:10),
+        xlab="Principal Component", ylab="Percent Variation")
+```
+
+```{r}
+colvec <- colnames(rna.data)
+colvec[grep("wt", colvec)] <- "red"
+colvec[grep("ko", colvec)] <- "blue"
+
+plot(pca$x[,1], pca$x[,2], col=colvec, pch=16,
+     xlab=paste0("PC1 (", pca.var.per[1], "%)"),
+     ylab=paste0("PC2 (", pca.var.per[2], "%)"))
+
+text(pca$x[,1], pca$x[,2], labels = colnames(rna.data), pos=c(rep(4,5), rep(2,5)))
+```
+
+Using ggplot to make our first basic graph:
+```{r}
+library(ggplot2)
+
+df <- as.data.frame(pca$x)
+
+ggplot(df) + 
+  aes(PC1, PC2) + 
+  geom_point()
+```
+
+To add wt and ko conditions:
+```{r}
+df$samples <- colnames(rna.data) 
+df$condition <- substr(colnames(rna.data),1,2)
+
+p <- ggplot(df) + 
+        aes(PC1, PC2, label=samples, col=condition) + 
+        geom_label(show.legend = FALSE)
+p
+```
+
+```{r}
+p + labs(title="PCA of RNASeq Data",
+       subtitle = "PC1 clealy seperates wild-type from knock-out samples",
+       x=paste0("PC1 (", pca.var.per[1], "%)"),
+       y=paste0("PC2 (", pca.var.per[2], "%)"),
+       caption="Class example data") +
+     theme_bw()
+```
+
+The top 10 genes that contribute the most to PC1 in either the positive or negative direction:
+```{r}
+loading_scores <- pca$rotation[,1]
+
+gene_scores <- abs(loading_scores) 
+gene_score_ranked <- sort(gene_scores, decreasing=TRUE)
+
+top_10_genes <- names(gene_score_ranked[1:10])
+top_10_genes
+```
+
