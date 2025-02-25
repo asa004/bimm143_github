@@ -1,0 +1,87 @@
+---
+title: "Comparative Structure Analysis"
+author: "Ashley Allen (PID: A14633373)"
+format: html
+---
+
+Here we run through a complete "pipeline" of structure analysis that begins with a single sequence identifier
+
+```{r}
+library(bio3d)
+```
+
+## Step 1: Get a sequence
+
+Retrieve a sequence for the protein we are interested in. We will take Adenylate kinase (ADK)
+
+```{r}
+id <- "1ake_A"
+aa <- get.seq("1ake_A")
+aa
+```
+
+## Step 2: BLAST search
+
+Run a BLAST search of the PDB for all related sequences to our input `aa`
+
+```{r}
+blast <- blast.pdb(aa)
+```
+
+Each dot is one of the hits from our BLAST result, the dotted line is a segregation showing the queries to the left of this line as the best hits.
+
+```{r}
+hits <- plot(blast)
+```
+
+## Sep 3: Download all structures 
+
+These are our "top hits" i.e. all the structures in the PDB databse related to our input sequence.
+
+```{r}
+hits$pdb.id
+```
+
+```{r}
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+```
+
+## Step 4: Align and superpose
+
+```{r}
+pdbs <- pdbaln(files, fit = TRUE, exefile="msa")
+```
+
+```{r}
+pdbs
+```
+
+## Step 5: PCA 
+
+Let's use our old friend PCA to make sense of these confusing, complicated structure relationships (these 18 structures).
+
+Each dot on our graphs represent our structures and is showing us there 3 main clusters. 
+```{r}
+pc <- pca(pdbs)
+plot(pc)
+```
+
+Let's make a trajectory (or movie) of the main confrontational changes captured by PC1. We will use the `mktrj()` function for this.
+
+```{r}
+mktrj(pc, file="pca_result.pdb")
+```
+
+
+Back of the envelope comparison of the PDB size to UniProt. Sequences are easy to get, but structures are the complete opposite (hard to find and expensive to find), so we see a larger data base in UniProt compared to PDB.
+
+```{r}
+uniprot <- 253206171
+pdb <- 231029
+pdb/uniprot *100
+```
+
+
+
+
+

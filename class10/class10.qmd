@@ -1,0 +1,178 @@
+---
+title: "Class 10: Structural Bioinformatics pt. 1"
+author: "Ashley Allen (PID: A14633373)"
+format: pdf
+toc: true
+---
+
+## 1. The PDB database
+
+The main repository of bio molecular structure data is called the PDB found at http://www.rcsb.org/
+
+Let's see what this database contains. I went to PDB > Analyze > PDB Statistics > By Exp method and molecular type.
+
+```{r}
+pdbstats <- read.csv("Data Export Summary.csv")
+pdbstats
+```
+
+
+> Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy.
+
+```{r}
+pdbstats$X.ray
+```
+The comma in these numbers is causing them to be read as characters rather than numeric.
+
+I can fix this by replacing "," for nothing " with the `sub()` function:
+```{r}
+x <- pdbstats$X.ray
+sum( as.numeric( sub(",", "", x)))
+```
+
+Or I can use the **readr** package and the `read_csv()`
+```{r}
+library("readr")
+pdbstats <- read_csv("Data Export Summary.csv")
+pdbstats
+```
+
+I want to clean the column names so they are all lowercase and don't have spaces.
+
+```{r}
+colnames(pdbstats)
+```
+```{r}
+library("janitor")
+df <- clean_names(pdbstats)
+df
+```
+
+Total # of X-ray structures
+```{r}
+sum(df$x_ray)
+```
+
+Total # of structures
+```{r}
+sum(df$total)
+```
+
+% of X-ray structures
+```{r}
+sum(df$x_ray) / sum(df$total) * 100
+```
+
+% of EM structures
+```{r}
+sum(df$em) / sum(df$total) * 100
+```
+
+> Q2: What proportion of structures in the PDB are protein?
+
+```{r}
+sum(df$total[1:3]) / sum(df$total) * 100
+```
+
+> Q3: Type HIV in the PDB website search box on the home page and determine how many HIV-1 protease structures are in the current PDB? (unanswered)
+
+When searching HIV and adding HIV-1 and protease as sub searches you get a result of 24,695 structures.
+
+## 2. Using Mol*
+
+The main Mol* homepage https://molstar.org/viewer/ 
+We can input our own PDB files or just give it a PDB database accession code (4 letter PDB code). We can use this markdown code to insert an image
+
+![Molecular view of 1HSG](1HSG.png)
+
+> Q4: Water molecules normally have 3 atoms. Why do we see just one atom per water molecule in this structure?
+
+By having water represented only as one atom compared to three we are able to see our protein stucture clearly. If water were repsrented how it truly is, we wouldn't be able to see our protein.
+
+> Q5: There is a critical “conserved” water molecule in the binding site. Can you identify this water molecule? What residue number does this water molecule have
+
+![HOH 308](1HSG-2.png)
+> Q6: Generate and save a figure clearly showing the two distinct chains of HIV-protease along with the ligand. You might also consider showing the catalytic residues ASP 25 in each chain and the critical water (we recommend “Ball & Stick” for these side-chains). Add this figure to your Quarto document.
+
+![Molecular Surface of HSG](1HSG-3.png)
+
+![The important ASP25 amino-acids](1HSG-4.png)
+>  Q7: [Optional] As you have hopefully observed HIV protease is a homodimer (i.e. it is composed of two identical chains). With the aid of the graphic display can you identify secondary structure elements that are likely to only form in the dimer rather than the monomer?
+
+![The important ASP25 amino-acids](1HSG-4.png)
+
+
+## 3. Introduction to Biod3D in R
+
+We can use the **bio3D** package for structural bioinformatics to read PDC data into R.
+
+```{r}
+library(bio3d)
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+> Q7: How many amino acid residues are there in this pdb object?
+
+```{r}
+length(pdbseq(pdb))
+```
+
+> Q8: Name one of the two non-protein residues?
+
+MK1
+
+>  Q9: How many protein chains are in this structure? 
+
+2 chains A and B 
+
+Looking at the `pdb` object in more details
+
+```{r}
+attributes(pdb)
+```
+
+```{r}
+head(pdb$atom)
+```
+
+Let's try a new function not yet in the bio3D package. It requires the **r3dmol** and **shiny** packages we need to install with `install.packages()`
+
+```{r}
+library(r3dmol)
+library(shiny)
+source("https://tinyurl.com/viewpdb")
+#view.pdb(pdb, backgroundColor="black")
+```
+
+## 4. Predicting functional dynamics
+
+We can use the `nma()` function in bio3d to predict the large scale functional motions of molecules
+
+```{r}
+adk <- read.pdb("6s36")
+adk
+```
+
+```{r}
+m <- nma(adk)
+plot(m)
+```
+
+Write out a trajectory of the predicted molecular motion: 
+```{r}
+mktrj(m, file="adk_m7.pdb")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
