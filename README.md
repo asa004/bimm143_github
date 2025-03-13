@@ -12,7 +12,7 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class08 [Unsupervised learning mini-project](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class08/class08.html)
 
--Class09 [Halloween Candy Mini-Project]()
+-Class09 [Halloween Candy Mini-Project](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class09/class09.html)
 
 -Class10 [Structural Bioinformatics (pt1)]()
 
