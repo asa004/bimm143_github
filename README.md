@@ -8,7 +8,7 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class06 [R Functions](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class06/class06.html)
 
--Class07 [Introduction to machine learning for Bioinformatics]()
+-Class07 [Introduction to machine learning for Bioinformatics](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class07/class07.html)
 
 -Class08 [Unsupervised learning mini-project]()
 
