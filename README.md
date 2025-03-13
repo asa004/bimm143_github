@@ -16,7 +16,7 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class10 [Structural Bioinformatics (pt1)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class10/class10.html)
 
--Class11 [Structural Bioinformatics (pt2 AlphaFold)]()
+-Class11 [Structural Bioinformatics (pt2 AlphaFold)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class11/class11.html)
 
 -Class12 [Genome informatics and high throughput sequencing]()
 
