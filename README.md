@@ -24,10 +24,6 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class14 [RNA-Seq mini project](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class14/class14.html)
 
--Class15 [Hands-on with Git and GitHub]()
-
--Class16 [Essential UNIX for bioinformatics]()
-
 -Class17 [Analyzing sequencing data in the cloud](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class17/class17.html)
 
 -Class 18 [Investigating pertussis resurgence mini project]()
