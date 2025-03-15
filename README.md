@@ -20,7 +20,7 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class12 [Genome informatics and high throughput sequencing](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class12/class12.html)
 
--Class13 [Transcriptomics, RNA-Seq analysis, and the interpretation of gene lists]()
+-Class13 [Transcriptomics, RNA-Seq analysis, and the interpretation of gene lists](https://htmlpreview.github.io/?https://github.com/asa004/bimm143_github/blob/main/class13/class13.html)
 
 -Class14 [RNA-Seq mini project]()
 
