@@ -26,6 +26,6 @@ My class work from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC S
 
 -Class17 [Analyzing sequencing data in the cloud](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class17/class17.html)
 
--Class 18 [Investigating pertussis resurgence mini project]()
+-Class 18 [Investigating pertussis resurgence mini project](https://htmlpreview.github.io/?https://raw.githubusercontent.com/asa004/bimm143_github/refs/heads/main/class18/class18.html)
 
 -Class19 [Mini Project: Cancer Mutation Analysis]()
