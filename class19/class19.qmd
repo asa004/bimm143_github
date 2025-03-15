@@ -1,0 +1,31 @@
+---
+title: "Class 19: Cancer Mutation Mini Project"
+author: "Ashley Allen (PID: A16433373)"
+format: html
+toc: true
+---
+
+```{r}
+library(bio3d)
+```
+
+```{r}
+s <- read.fasta("A14633373_mutant_seq.fa")
+s
+```
+```{r}
+score <- conserv(s)
+score
+```
+
+Checking where these scores are not equal to 1
+```{r}
+positions <- which(score != 1)
+```
+
+```{r}
+positions
+```
+
+
+
